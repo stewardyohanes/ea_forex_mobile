@@ -1,9 +1,20 @@
-import { useState, useCallback } from 'react';
-import { getSignals } from '../api/signals';
-import { useSignalStore } from '../store/signalStore';
+import { useState, useCallback } from "react";
+import { getSignals } from "../api/signals";
+import { useSignalStore } from "../store/signalStore";
+import { dummySignals } from "../data/dummySignals";
+
+const USE_DUMMY = true;
 
 export function useSignals() {
-  const { signals, setSignals, appendSignals, setLoading, setError, loading, error } = useSignalStore();
+  const {
+    signals,
+    setSignals,
+    appendSignals,
+    setLoading,
+    setError,
+    loading,
+    error,
+  } = useSignalStore();
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
@@ -11,20 +22,25 @@ export function useSignals() {
     setLoading(true);
     setError(null);
     try {
+      if (USE_DUMMY) {
+        setSignals(dummySignals);
+        setHasMore(false);
+        return;
+      }
       const data = await getSignals(1, 20);
       const items = data.data ?? [];
       setSignals(items);
       setPage(1);
       setHasMore(items.length < (data.total ?? 0));
     } catch (e: any) {
-      setError(e.message ?? 'Gagal memuat sinyal');
+      setError(e.message ?? "Gagal memuat sinyal");
     } finally {
       setLoading(false);
     }
   }, []);
 
   const fetchMore = useCallback(async () => {
-    if (loading || !hasMore) return;
+    if (loading || !hasMore || USE_DUMMY) return;
     const nextPage = page + 1;
     setLoading(true);
     try {

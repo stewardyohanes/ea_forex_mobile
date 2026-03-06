@@ -12,6 +12,7 @@ import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { login } from "../src/api/auth";
 import { useAuthStore } from "../src/store/authStore";
+import { colors } from "../src/theme";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -29,14 +30,8 @@ export default function LoginScreen() {
       const { token, user } = await login(email, password);
       await SecureStore.setItemAsync("jwt_token", token);
       setAuth(token, user);
-      const disclaimerAccepted = await SecureStore.getItemAsync(
-        "disclaimer_accepted",
-      );
-      if (!disclaimerAccepted) {
-        router.replace("/disclaimer");
-      } else {
-        router.replace("/(tabs)");
-      }
+      const ok = await SecureStore.getItemAsync("disclaimer_accepted");
+      router.replace(ok ? "/(tabs)" : "/disclaimer");
     } catch (e: any) {
       Alert.alert(
         "Login Gagal",
@@ -50,9 +45,11 @@ export default function LoginScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Forex Signal</Text>
+      <Text style={styles.subtitle}>Trading Intelligence Platform</Text>
       <TextInput
         style={styles.input}
         placeholder="Email"
+        placeholderTextColor={colors.textSecondary}
         autoCapitalize="none"
         keyboardType="email-address"
         value={email}
@@ -61,6 +58,7 @@ export default function LoginScreen() {
       <TextInput
         style={styles.input}
         placeholder="Password"
+        placeholderTextColor={colors.textSecondary}
         secureTextEntry
         value={password}
         onChangeText={setPassword}
@@ -77,7 +75,9 @@ export default function LoginScreen() {
         )}
       </TouchableOpacity>
       <TouchableOpacity onPress={() => router.push("/register")}>
-        <Text style={styles.link}>Belum punya akun? Daftar</Text>
+        <Text style={styles.link}>
+          Belum punya akun? <Text style={{ color: colors.green }}>Daftar</Text>
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -88,29 +88,38 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     padding: 24,
-    backgroundColor: "#fff",
+    backgroundColor: colors.background,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 32,
+    color: colors.textPrimary,
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 14,
+    textAlign: "center",
+    color: colors.textSecondary,
+    marginBottom: 40,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: colors.border,
     borderRadius: 8,
-    padding: 12,
+    padding: 14,
     marginBottom: 12,
     fontSize: 16,
+    backgroundColor: colors.surface,
+    color: colors.textPrimary,
   },
   button: {
-    backgroundColor: "#007AFF",
+    backgroundColor: colors.primary,
     padding: 14,
     borderRadius: 8,
     alignItems: "center",
     marginBottom: 16,
   },
   buttonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  link: { textAlign: "center", color: "#007AFF", fontSize: 14 },
+  link: { textAlign: "center", color: colors.textSecondary, fontSize: 14 },
 });

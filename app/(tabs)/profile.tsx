@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { router } from "expo-router";
 import { useAuthStore } from "../../src/store/authStore";
+import { colors } from "../../src/theme";
 
 export default function ProfileScreen() {
   const { user, clearAuth } = useAuthStore();
@@ -27,8 +28,8 @@ export default function ProfileScreen() {
     affiliate: "Affiliate",
   };
   const planColor: Record<string, string> = {
-    free: "#888",
-    premium: "#007AFF",
+    free: colors.textSecondary,
+    premium: colors.primary,
     affiliate: "#FF9500",
   };
 
@@ -44,7 +45,17 @@ export default function ProfileScreen() {
         >
           <Text style={styles.planText}>{planLabel[user?.plan ?? "free"]}</Text>
         </View>
+
+        {user?.plan === "free" && (
+          <TouchableOpacity
+            style={styles.upgradeBtn}
+            onPress={() => router.push("/upgrade")}
+          >
+            <Text style={styles.upgradeText}>⚡ Upgrade Plan</Text>
+          </TouchableOpacity>
+        )}
       </View>
+
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
         <Text style={styles.logoutText}>Logout</Text>
       </TouchableOpacity>
@@ -53,27 +64,38 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f5f5f5", padding: 16 },
+  container: { flex: 1, backgroundColor: colors.background, padding: 16 },
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
     borderRadius: 12,
     padding: 20,
     alignItems: "center",
     marginBottom: 24,
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  email: { fontSize: 16, fontWeight: "600", marginBottom: 12 },
+  email: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: colors.textPrimary,
+    marginBottom: 12,
+  },
   planBadge: { paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20 },
   planText: { color: "#fff", fontWeight: "700", fontSize: 14 },
+  upgradeBtn: {
+    marginTop: 16,
+    backgroundColor: colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  upgradeText: { color: "#fff", fontWeight: "700", fontSize: 14 },
   logoutBtn: {
-    backgroundColor: "#FF3B30",
+    backgroundColor: colors.red,
     padding: 14,
     borderRadius: 8,
     alignItems: "center",
   },
   logoutText: { color: "#fff", fontSize: 16, fontWeight: "600" },
 });
+1;

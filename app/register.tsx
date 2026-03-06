@@ -12,6 +12,7 @@ import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { register } from "../src/api/auth";
 import { useAuthStore } from "../src/store/authStore";
+import { colors } from "../src/theme";
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState("");
@@ -50,6 +51,7 @@ export default function RegisterScreen() {
       <TextInput
         style={styles.input}
         placeholder="Email"
+        placeholderTextColor={colors.textSecondary}
         autoCapitalize="none"
         keyboardType="email-address"
         value={email}
@@ -58,6 +60,7 @@ export default function RegisterScreen() {
       <TextInput
         style={styles.input}
         placeholder="Password (min. 6 karakter)"
+        placeholderTextColor={colors.textSecondary}
         secureTextEntry
         value={password}
         onChangeText={setPassword}
@@ -74,7 +77,9 @@ export default function RegisterScreen() {
         )}
       </TouchableOpacity>
       <TouchableOpacity onPress={() => router.back()}>
-        <Text style={styles.link}>Sudah punya akun? Login</Text>
+        <Text style={styles.link}>
+          Sudah punya akun? <Text style={{ color: colors.primary }}>Login</Text>
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -85,29 +90,32 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     padding: 24,
-    backgroundColor: "#fff",
+    backgroundColor: colors.background,
   },
   title: {
     fontSize: 28,
     fontWeight: "bold",
     textAlign: "center",
+    color: colors.textPrimary,
     marginBottom: 32,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: colors.border,
     borderRadius: 8,
-    padding: 12,
+    padding: 14,
     marginBottom: 12,
     fontSize: 16,
+    backgroundColor: colors.surface,
+    color: colors.textPrimary,
   },
   button: {
-    backgroundColor: "#34C759",
+    backgroundColor: colors.green,
     padding: 14,
     borderRadius: 8,
     alignItems: "center",
     marginBottom: 16,
   },
-  buttonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  link: { textAlign: "center", color: "#007AFF", fontSize: 14 },
+  buttonText: { color: "#0A1628", fontSize: 16, fontWeight: "700" },
+  link: { textAlign: "center", color: colors.textSecondary, fontSize: 14 },
 });

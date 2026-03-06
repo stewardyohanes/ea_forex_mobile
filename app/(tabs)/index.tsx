@@ -10,6 +10,8 @@ import {
 import { useSignals } from "../../src/hooks/useSignals";
 import { useAuthStore } from "../../src/store/authStore";
 import SignalCard from "../../src/components/SignalCard";
+import EmptyState from "../../src/components/EmptyState";
+import { colors } from "../../src/theme";
 
 export default function FeedScreen() {
   const { signals, loading, error, fetchInitial, fetchMore } = useSignals();
@@ -22,8 +24,8 @@ export default function FeedScreen() {
 
   if (error) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.error}>{error}</Text>
+      <View style={styles.errorContainer}>
+        <EmptyState message={error} onRetry={fetchInitial} />
       </View>
     );
   }
@@ -42,6 +44,7 @@ export default function FeedScreen() {
         <RefreshControl
           refreshing={loading && signals.length === 0}
           onRefresh={fetchInitial}
+          tintColor={colors.green}
         />
       }
       ListHeaderComponent={
@@ -54,14 +57,12 @@ export default function FeedScreen() {
       }
       ListEmptyComponent={
         !loading ? (
-          <View style={styles.center}>
-            <Text style={styles.empty}>Belum ada sinyal</Text>
-          </View>
+          <EmptyState message="Belum ada sinyal" onRetry={fetchInitial} />
         ) : null
       }
       ListFooterComponent={
         loading && signals.length > 0 ? (
-          <ActivityIndicator style={{ margin: 16 }} />
+          <ActivityIndicator style={{ margin: 16 }} color={colors.green} />
         ) : null
       }
     />
@@ -69,16 +70,9 @@ export default function FeedScreen() {
 }
 
 const styles = StyleSheet.create({
-  list: { paddingVertical: 8, backgroundColor: "#f5f5f5", flexGrow: 1 },
+  list: { paddingVertical: 8, backgroundColor: colors.background, flexGrow: 1 },
   header: { padding: 16, paddingBottom: 8 },
-  title: { fontSize: 22, fontWeight: "700" },
-  freeNote: { fontSize: 12, color: "#888", marginTop: 4 },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 32,
-  },
-  error: { color: "#FF3B30", textAlign: "center" },
-  empty: { color: "#888", fontSize: 16 },
+  title: { fontSize: 22, fontWeight: "700", color: colors.textPrimary },
+  freeNote: { fontSize: 12, color: colors.textSecondary, marginTop: 4 },
+  errorContainer: { flex: 1, backgroundColor: colors.background },
 });

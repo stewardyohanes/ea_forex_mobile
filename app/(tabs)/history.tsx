@@ -10,7 +10,9 @@ import {
 import { useSignals } from "../../src/hooks/useSignals";
 import { useAuthStore } from "../../src/store/authStore";
 import SignalCard from "../../src/components/SignalCard";
+import EmptyState from "../../src/components/EmptyState";
 import { Signal } from "../../src/types/signal";
+import { colors } from "../../src/theme";
 
 type Direction = "ALL" | "BUY" | "SELL";
 
@@ -48,7 +50,7 @@ export default function HistoryScreen() {
         ))}
       </View>
       {loading && signals.length === 0 ? (
-        <ActivityIndicator style={{ marginTop: 32 }} />
+        <ActivityIndicator style={{ marginTop: 32 }} color={colors.green} />
       ) : (
         <FlatList
           data={filtered}
@@ -58,9 +60,7 @@ export default function HistoryScreen() {
           )}
           contentContainerStyle={styles.list}
           ListEmptyComponent={
-            <View style={styles.center}>
-              <Text style={styles.empty}>Tidak ada sinyal</Text>
-            </View>
+            <EmptyState message="Tidak ada sinyal" onRetry={fetchInitial} />
           }
         />
       )}
@@ -69,20 +69,21 @@ export default function HistoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f5f5f5" },
+  container: { flex: 1, backgroundColor: colors.background },
   filterRow: { flexDirection: "row", padding: 16, gap: 8 },
   filterBtn: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#ddd",
-    backgroundColor: "#fff",
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
-  filterActive: { backgroundColor: "#007AFF", borderColor: "#007AFF" },
-  filterText: { fontSize: 14, color: "#333" },
+  filterActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  filterText: { fontSize: 14, color: colors.textSecondary },
   filterTextActive: { color: "#fff", fontWeight: "600" },
-  list: { paddingBottom: 16 },
-  center: { padding: 32, alignItems: "center" },
-  empty: { color: "#888", fontSize: 16 },
+  list: { paddingBottom: 16, flexGrow: 1 },
 });

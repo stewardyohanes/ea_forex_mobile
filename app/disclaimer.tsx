@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+import { colors } from "../src/theme";
 
 export default function DisclaimerScreen() {
   async function handleAccept() {
@@ -41,12 +42,18 @@ export default function DisclaimerScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, backgroundColor: "#fff" },
-  title: { fontSize: 24, fontWeight: "bold", marginBottom: 16, marginTop: 48 },
+  container: { flex: 1, padding: 24, backgroundColor: colors.background },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: colors.textPrimary,
+    marginBottom: 16,
+    marginTop: 48,
+  },
   scroll: { flex: 1, marginBottom: 16 },
-  body: { fontSize: 15, lineHeight: 24, color: "#333" },
+  body: { fontSize: 15, lineHeight: 24, color: colors.textSecondary },
   button: {
-    backgroundColor: "#007AFF",
+    backgroundColor: colors.primary,
     padding: 16,
     borderRadius: 8,
     alignItems: "center",
