@@ -3,7 +3,6 @@ import {
   View,
   Text,
   FlatList,
-  StyleSheet,
   TouchableOpacity,
   Dimensions,
   NativeScrollEvent,
@@ -48,8 +47,7 @@ export default function OnboardingScreen() {
   const flatListRef = useRef<FlatList>(null);
 
   function handleScroll(e: NativeSyntheticEvent<NativeScrollEvent>) {
-    const index = Math.round(e.nativeEvent.contentOffset.x / width);
-    setActiveIndex(index);
+    setActiveIndex(Math.round(e.nativeEvent.contentOffset.x / width));
   }
 
   function handleNext() {
@@ -68,15 +66,16 @@ export default function OnboardingScreen() {
   const isLast = activeIndex === slides.length - 1;
 
   return (
-    <View style={styles.container}>
-      {/* Skip */}
+    <View className="flex-1 bg-background pb-10">
       {!isLast && (
-        <TouchableOpacity style={styles.skip} onPress={handleFinish}>
-          <Text style={styles.skipText}>Lewati</Text>
+        <TouchableOpacity
+          className="absolute top-12 right-6 z-10"
+          onPress={handleFinish}
+        >
+          <Text className="text-text-secondary text-sm">Lewati</Text>
         </TouchableOpacity>
       )}
 
-      {/* Slides */}
       <FlatList
         ref={flatListRef}
         data={slides}
@@ -87,101 +86,50 @@ export default function OnboardingScreen() {
         onScroll={handleScroll}
         scrollEventThrottle={16}
         renderItem={({ item }) => (
-          <View style={styles.slide}>
+          <View
+            style={{ width }}
+            className="flex-1 justify-center items-center px-10 pt-20"
+          >
             <View
-              style={[styles.iconContainer, { borderColor: item.iconColor }]}
+              className="w-[140px] h-[140px] rounded-full border-2 justify-center items-center mb-10 bg-surface"
+              style={{ borderColor: item.iconColor }}
             >
               <Ionicons name={item.icon} size={64} color={item.iconColor} />
             </View>
-            <Text style={styles.title}>{item.title}</Text>
-            <Text style={styles.description}>{item.description}</Text>
+            <Text className="text-2xl font-bold text-text-primary text-center mb-4">
+              {item.title}
+            </Text>
+            <Text className="text-[15px] leading-6 text-text-secondary text-center">
+              {item.description}
+            </Text>
           </View>
         )}
       />
 
-      {/* Dots */}
-      <View style={styles.dotsRow}>
+      <View className="flex-row justify-center gap-2 mb-8">
         {slides.map((_, i) => (
           <View
             key={i}
-            style={[styles.dot, i === activeIndex && styles.dotActive]}
+            className={`h-2 rounded-full ${i === activeIndex ? "w-6 bg-green" : "w-2 bg-bdr"}`}
           />
         ))}
       </View>
 
-      {/* Button */}
       <TouchableOpacity
-        style={[styles.button, isLast && styles.buttonLast]}
+        className={`mx-6 p-4 rounded-lg items-center ${isLast ? "bg-green" : "bg-primary"}`}
         onPress={handleNext}
       >
         {isLast ? (
-          <Text style={styles.buttonText}>Mulai Sekarang</Text>
+          <Text className="text-white text-base font-semibold">
+            Mulai Sekarang
+          </Text>
         ) : (
-          <View style={styles.buttonRow}>
-            <Text style={styles.buttonText}>Lanjut</Text>
-            <Ionicons
-              name="arrow-forward"
-              size={18}
-              color={isLast ? colors.background : "#fff"}
-            />
+          <View className="flex-row items-center gap-2">
+            <Text className="text-white text-base font-semibold">Lanjut</Text>
+            <Ionicons name="arrow-forward" size={18} color="#fff" />
           </View>
         )}
       </TouchableOpacity>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, paddingBottom: 40 },
-  skip: { position: "absolute", top: 52, right: 24, zIndex: 10 },
-  skipText: { color: colors.textSecondary, fontSize: 14 },
-  slide: {
-    width,
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 40,
-    paddingTop: 80,
-  },
-  iconContainer: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    borderWidth: 2,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 40,
-    backgroundColor: colors.surface,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: colors.textPrimary,
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  description: {
-    fontSize: 15,
-    lineHeight: 24,
-    color: colors.textSecondary,
-    textAlign: "center",
-  },
-  dotsRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 8,
-    marginBottom: 32,
-  },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.border },
-  dotActive: { width: 24, backgroundColor: colors.green },
-  button: {
-    marginHorizontal: 24,
-    padding: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    backgroundColor: colors.primary,
-  },
-  buttonLast: { backgroundColor: colors.green },
-  buttonRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  buttonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-});

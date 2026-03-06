@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   Alert,
   ActivityIndicator,
 } from "react-native";
@@ -43,11 +42,15 @@ export default function LoginScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Forex Signal</Text>
-      <Text style={styles.subtitle}>Trading Intelligence Platform</Text>
+    <View className="flex-1 justify-center p-6 bg-background">
+      <Text className="text-[32px] font-bold text-center text-text-primary mb-1">
+        TradeGenZ
+      </Text>
+      <Text className="text-sm text-center text-text-secondary mb-10">
+        Trading Intelligence Platform
+      </Text>
       <TextInput
-        style={styles.input}
+        className="border border-bdr rounded-lg p-3.5 mb-3 text-base bg-surface text-text-primary"
         placeholder="Email"
         placeholderTextColor={colors.textSecondary}
         autoCapitalize="none"
@@ -56,7 +59,7 @@ export default function LoginScreen() {
         onChangeText={setEmail}
       />
       <TextInput
-        style={styles.input}
+        className="border border-bdr rounded-lg p-3.5 mb-3 text-base bg-surface text-text-primary"
         placeholder="Password"
         placeholderTextColor={colors.textSecondary}
         secureTextEntry
@@ -64,62 +67,21 @@ export default function LoginScreen() {
         onChangeText={setPassword}
       />
       <TouchableOpacity
-        style={styles.button}
+        className="bg-primary p-3.5 rounded-lg items-center mb-4"
         onPress={handleLogin}
         disabled={loading}
       >
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Login</Text>
+          <Text className="text-white text-base font-semibold">Login</Text>
         )}
       </TouchableOpacity>
       <TouchableOpacity onPress={() => router.push("/register")}>
-        <Text style={styles.link}>
+        <Text className="text-center text-text-secondary text-sm">
           Belum punya akun? <Text style={{ color: colors.green }}>Daftar</Text>
         </Text>
       </TouchableOpacity>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 24,
-    backgroundColor: colors.background,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    textAlign: "center",
-    color: colors.textPrimary,
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    textAlign: "center",
-    color: colors.textSecondary,
-    marginBottom: 40,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    padding: 14,
-    marginBottom: 12,
-    fontSize: 16,
-    backgroundColor: colors.surface,
-    color: colors.textPrimary,
-  },
-  button: {
-    backgroundColor: colors.primary,
-    padding: 14,
-    borderRadius: 8,
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  buttonText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  link: { textAlign: "center", color: colors.textSecondary, fontSize: 14 },
-});

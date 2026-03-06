@@ -1,3 +1,4 @@
+import "../global.css";
 import { useEffect } from "react";
 import { Stack, router } from "expo-router";
 import * as SecureStore from "expo-secure-store";

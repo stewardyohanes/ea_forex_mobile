@@ -3,10 +3,10 @@ import {
   FlatList,
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSignals } from "../../src/hooks/useSignals";
 import { useAuthStore } from "../../src/store/authStore";
 import SignalCard from "../../src/components/SignalCard";
@@ -21,6 +21,7 @@ export default function HistoryScreen() {
   const user = useAuthStore((s) => s.user);
   const canViewDetail = user?.plan === "premium" || user?.plan === "affiliate";
   const [filter, setFilter] = useState<Direction>("ALL");
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     fetchInitial();
@@ -30,60 +31,44 @@ export default function HistoryScreen() {
     filter === "ALL" ? signals : signals.filter((s) => s.direction === filter);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.filterRow}>
-        {(["ALL", "BUY", "SELL"] as Direction[]).map((d) => (
-          <TouchableOpacity
-            key={d}
-            style={[styles.filterBtn, filter === d && styles.filterActive]}
-            onPress={() => setFilter(d)}
-          >
-            <Text
-              style={[
-                styles.filterText,
-                filter === d && styles.filterTextActive,
-              ]}
+    <View className="flex-1 bg-gradient-to-b from-surface to-background">
+      <View className="flex-1" style={{ paddingTop: insets.top + 16 }}>
+        <Text className="text-2xl font-extrabold text-text-primary px-4 mb-4">
+          Riwayat Sinyal
+        </Text>
+
+        <View className="flex-row gap-2 px-4 mb-4">
+          {(["ALL", "BUY", "SELL"] as Direction[]).map((d) => (
+            <TouchableOpacity
+              key={d}
+              className={`px-5 py-2 rounded-full border ${filter === d ? "bg-primary border-primary" : "bg-surface border-bdr"}`}
+              onPress={() => setFilter(d)}
             >
-              {d === "ALL" ? "Semua" : d}
-            </Text>
-          </TouchableOpacity>
-        ))}
+              <Text
+                className={`text-sm font-semibold ${filter === d ? "text-white" : "text-text-secondary"}`}
+              >
+                {d === "ALL" ? "Semua" : d}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {loading && signals.length === 0 ? (
+          <ActivityIndicator style={{ marginTop: 32 }} color={colors.green} />
+        ) : (
+          <FlatList
+            data={filtered}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <SignalCard signal={item} canViewDetail={canViewDetail} />
+            )}
+            contentContainerStyle={{ paddingBottom: 16, flexGrow: 1 }}
+            ListEmptyComponent={
+              <EmptyState message="Tidak ada sinyal" onRetry={fetchInitial} />
+            }
+          />
+        )}
       </View>
-      {loading && signals.length === 0 ? (
-        <ActivityIndicator style={{ marginTop: 32 }} color={colors.green} />
-      ) : (
-        <FlatList
-          data={filtered}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <SignalCard signal={item} canViewDetail={canViewDetail} />
-          )}
-          contentContainerStyle={styles.list}
-          ListEmptyComponent={
-            <EmptyState message="Tidak ada sinyal" onRetry={fetchInitial} />
-          }
-        />
-      )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  filterRow: { flexDirection: "row", padding: 16, gap: 8 },
-  filterBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  filterActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  filterText: { fontSize: 14, color: colors.textSecondary },
-  filterTextActive: { color: "#fff", fontWeight: "600" },
-  list: { paddingBottom: 16, flexGrow: 1 },
-});

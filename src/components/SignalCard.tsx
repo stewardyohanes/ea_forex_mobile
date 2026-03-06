@@ -1,8 +1,6 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
 import { Signal } from "../types/signal";
-import DirectionBadge from "./DirectionBadge";
-import StatusBadge from "./StatusBadge";
 import { colors } from "../theme";
 
 interface Props {
@@ -10,102 +8,91 @@ interface Props {
   canViewDetail: boolean;
 }
 
+const statusConfig: Record<string, { label: string; color: string }> = {
+  active: { label: "Active", color: colors.green },
+  tp_hit: { label: "Take Profit", color: colors.green },
+  sl_hit: { label: "Stop Loss", color: colors.red },
+  closed: { label: "Trade Close", color: "#FFB800" },
+};
+
+const waitingConfig: Record<string, { label: string; color: string }> = {
+  active: { label: "Waiting", color: colors.textSecondary },
+  tp_hit: { label: "Expired", color: colors.textSecondary },
+  sl_hit: { label: "Expired", color: colors.textSecondary },
+  closed: { label: "Expired", color: colors.textSecondary },
+};
+
 export default function SignalCard({ signal, canViewDetail }: Props) {
-  function handlePress() {
-    if (!canViewDetail) return;
-    router.push(`/signal/${signal.id}`);
-  }
+  const directionColor = signal.direction === "BUY" ? colors.green : colors.red;
+  const statusCfg = statusConfig[signal.status] ?? statusConfig.closed;
+  const waitingCfg = waitingConfig[signal.status] ?? waitingConfig.closed;
+
+  const formattedTime = new Date(signal.created_at)
+    .toLocaleString("id-ID", {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+    .replace(",", " -");
 
   return (
     <TouchableOpacity
-      style={styles.card}
-      onPress={handlePress}
-      activeOpacity={canViewDetail ? 0.7 : 1}
+      className="flex-row bg-surface mx-4 mb-2 rounded-xl overflow-hidden border border-bdr"
+      onPress={() => canViewDetail && router.push(`/signal/${signal.id}`)}
+      activeOpacity={canViewDetail ? 0.75 : 1}
     >
-      <View style={styles.header}>
-        <Text style={styles.symbol}>{signal.symbol}</Text>
-        <DirectionBadge direction={signal.direction as "BUY" | "SELL"} />
-      </View>
-      <View style={styles.row}>
-        <View style={styles.item}>
-          <Text style={styles.label}>Entry</Text>
-          <Text style={styles.value}>{signal.entry_price}</Text>
-        </View>
-        <View style={styles.item}>
-          <Text style={styles.label}>TP1</Text>
-          <Text style={[styles.value, { color: colors.green }]}>
-            {signal.tp1 ?? "-"}
+      {/* Left colored border */}
+      <View className="w-1" style={{ backgroundColor: directionColor }} />
+
+      {/* Content */}
+      <View className="flex-1 py-3 pl-3 gap-[3px]">
+        <Text className="text-base font-bold text-text-primary">
+          {signal.symbol}{" "}
+          <Text className="text-[13px] font-normal text-text-secondary">
+            {signal.timeframe}
           </Text>
-        </View>
-        <View style={styles.item}>
-          <Text style={styles.label}>SL</Text>
-          <Text style={[styles.value, { color: colors.red }]}>{signal.sl}</Text>
-        </View>
-        {signal.risk_reward && (
-          <View style={styles.item}>
-            <Text style={styles.label}>RR</Text>
-            <Text style={[styles.value, { color: colors.primary }]}>
-              {Number(signal.risk_reward).toFixed(2)}
-            </Text>
-          </View>
-        )}
-      </View>
-      <View style={styles.footer}>
-        <View style={styles.footerLeft}>
-          <Text style={styles.timeframe}>{signal.timeframe}</Text>
-          <Text style={styles.time}>
-            {new Date(signal.created_at).toLocaleString("id-ID", {
-              day: "2-digit",
-              month: "short",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </Text>
-        </View>
-        <StatusBadge status={signal.status} />
-      </View>
-      {!canViewDetail && (
-        <Text style={styles.upgrade}>
-          Upgrade ke Premium untuk lihat detail
         </Text>
-      )}
+        <View className="flex-row items-center gap-1.5">
+          <Text
+            className="text-xs font-medium"
+            style={{ color: waitingCfg.color }}
+          >
+            {waitingCfg.label}
+          </Text>
+          <Text
+            className="text-xs font-bold"
+            style={{ color: statusCfg.color }}
+          >
+            {statusCfg.label}
+          </Text>
+        </View>
+        <Text className="text-xs text-text-secondary">
+          Entry: {signal.entry_price}
+        </Text>
+        <Text className="text-[11px] text-text-secondary mt-0.5">
+          {formattedTime}
+        </Text>
+      </View>
+
+      {/* Right: Direction pill */}
+      <View className="justify-center items-center px-3.5 gap-1.5">
+        <View
+          className="px-4 py-2 rounded-full border-[1.5px] min-w-[64px] items-center"
+          style={{
+            backgroundColor: directionColor + "20",
+            borderColor: directionColor,
+          }}
+        >
+          <Text
+            className="text-[13px] font-extrabold tracking-wide"
+            style={{ color: directionColor }}
+          >
+            {signal.direction}
+          </Text>
+        </View>
+        {!canViewDetail && <Text className="text-sm">🔒</Text>}
+      </View>
     </TouchableOpacity>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  symbol: { fontSize: 18, fontWeight: "700", color: colors.textPrimary },
-  row: { flexDirection: "row", gap: 16, marginBottom: 12 },
-  item: { flex: 1 },
-  label: { fontSize: 11, color: colors.textSecondary, marginBottom: 2 },
-  value: { fontSize: 14, fontWeight: "600", color: colors.textPrimary },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  footerLeft: { gap: 2 },
-  timeframe: { fontSize: 12, color: colors.textSecondary },
-  time: { fontSize: 12, color: colors.textSecondary },
-  upgrade: {
-    marginTop: 8,
-    fontSize: 12,
-    color: colors.primary,
-    fontStyle: "italic",
-  },
-});

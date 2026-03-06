@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text } from "react-native";
 import { colors } from "../theme";
 
 const statusConfig: Record<string, { label: string; color: string }> = {
@@ -11,17 +11,11 @@ const statusConfig: Record<string, { label: string; color: string }> = {
 export default function StatusBadge({ status }: { status: string }) {
   const config = statusConfig[status] ?? statusConfig.closed;
   return (
-    <View style={[styles.badge, { backgroundColor: config.color }]}>
-      <Text style={styles.text}>{config.label}</Text>
+    <View
+      className="px-2.5 py-1 rounded-xl"
+      style={{ backgroundColor: config.color }}
+    >
+      <Text className="text-white text-[11px] font-bold">{config.label}</Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  text: { color: "#fff", fontSize: 11, fontWeight: "700" },
-});

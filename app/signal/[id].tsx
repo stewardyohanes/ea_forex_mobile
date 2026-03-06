@@ -1,11 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  ActivityIndicator,
-} from "react-native";
+import { View, Text, ScrollView, ActivityIndicator } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { getSignalById } from "../../src/api/signals";
 import { Signal } from "../../src/types/signal";
@@ -44,13 +38,12 @@ export default function SignalDetailScreen() {
       />
     );
 
-  if (error || !signal) {
+  if (error || !signal)
     return (
-      <View style={styles.center}>
-        <Text style={styles.error}>{error ?? "Terjadi kesalahan"}</Text>
+      <View className="flex-1 justify-center items-center bg-background">
+        <Text className="text-red">{error ?? "Terjadi kesalahan"}</Text>
       </View>
     );
-  }
 
   const rows = [
     { label: "Symbol", value: signal.symbol },
@@ -80,29 +73,32 @@ export default function SignalDetailScreen() {
   ];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <Text style={styles.symbol}>{signal.symbol}</Text>
-        <View style={styles.badges}>
+    <ScrollView
+      className="flex-1 bg-background"
+      contentContainerStyle={{ padding: 16 }}
+    >
+      <View className="flex-row justify-between items-center mb-1">
+        <Text className="text-2xl font-bold text-text-primary">
+          {signal.symbol}
+        </Text>
+        <View className="flex-row gap-2 items-center">
           <DirectionBadge direction={signal.direction as "BUY" | "SELL"} />
           <StatusBadge status={signal.status} />
         </View>
       </View>
-      <Text style={styles.time}>
+      <Text className="text-[13px] text-text-secondary mb-4">
         {new Date(signal.created_at).toLocaleString("id-ID")}
       </Text>
-      <View style={styles.card}>
+      <View className="bg-surface rounded-xl p-4 border border-bdr">
         {rows.map((row, i) => (
           <View
             key={row.label}
-            style={[
-              styles.row,
-              i === rows.length - 1 && { borderBottomWidth: 0 },
-            ]}
+            className={`flex-row justify-between py-3 ${i < rows.length - 1 ? "border-b border-bdr" : ""}`}
           >
-            <Text style={styles.rowLabel}>{row.label}</Text>
+            <Text className="text-sm text-text-secondary">{row.label}</Text>
             <Text
-              style={[styles.rowValue, row.color ? { color: row.color } : null]}
+              className="text-sm font-semibold text-text-primary"
+              style={row.color ? { color: row.color } : undefined}
             >
               {row.value}
             </Text>
@@ -112,40 +108,3 @@ export default function SignalDetailScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: 16 },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: colors.background,
-  },
-  error: { color: colors.red },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  symbol: { fontSize: 24, fontWeight: "700", color: colors.textPrimary },
-  badges: { flexDirection: "row", gap: 8, alignItems: "center" },
-  time: { fontSize: 13, color: colors.textSecondary, marginBottom: 16 },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  rowLabel: { fontSize: 14, color: colors.textSecondary },
-  rowValue: { fontSize: 14, fontWeight: "600", color: colors.textPrimary },
-});

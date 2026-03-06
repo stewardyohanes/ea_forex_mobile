@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   Alert,
   ActivityIndicator,
 } from "react-native";
@@ -46,10 +45,12 @@ export default function RegisterScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Daftar Akun</Text>
+    <View className="flex-1 justify-center p-6 bg-background">
+      <Text className="text-[28px] font-bold text-center text-text-primary mb-8">
+        Daftar Akun
+      </Text>
       <TextInput
-        style={styles.input}
+        className="border border-bdr rounded-lg p-3.5 mb-3 text-base bg-surface text-text-primary"
         placeholder="Email"
         placeholderTextColor={colors.textSecondary}
         autoCapitalize="none"
@@ -58,7 +59,7 @@ export default function RegisterScreen() {
         onChangeText={setEmail}
       />
       <TextInput
-        style={styles.input}
+        className="border border-bdr rounded-lg p-3.5 mb-3 text-base bg-surface text-text-primary"
         placeholder="Password (min. 6 karakter)"
         placeholderTextColor={colors.textSecondary}
         secureTextEntry
@@ -66,56 +67,21 @@ export default function RegisterScreen() {
         onChangeText={setPassword}
       />
       <TouchableOpacity
-        style={styles.button}
+        className="bg-green p-3.5 rounded-lg items-center mb-4"
         onPress={handleRegister}
         disabled={loading}
       >
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Daftar</Text>
+          <Text className="text-background text-base font-bold">Daftar</Text>
         )}
       </TouchableOpacity>
       <TouchableOpacity onPress={() => router.back()}>
-        <Text style={styles.link}>
+        <Text className="text-center text-text-secondary text-sm">
           Sudah punya akun? <Text style={{ color: colors.primary }}>Login</Text>
         </Text>
       </TouchableOpacity>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 24,
-    backgroundColor: colors.background,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    textAlign: "center",
-    color: colors.textPrimary,
-    marginBottom: 32,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    padding: 14,
-    marginBottom: 12,
-    fontSize: 16,
-    backgroundColor: colors.surface,
-    color: colors.textPrimary,
-  },
-  button: {
-    backgroundColor: colors.green,
-    padding: 14,
-    borderRadius: 8,
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  buttonText: { color: "#0A1628", fontSize: 16, fontWeight: "700" },
-  link: { textAlign: "center", color: colors.textSecondary, fontSize: 14 },
-});
