@@ -1,9 +1,6 @@
 import { useState, useCallback } from "react";
 import { getSignals } from "../api/signals";
 import { useSignalStore } from "../store/signalStore";
-import { dummySignals } from "../data/dummySignals";
-
-const USE_DUMMY = true;
 
 export function useSignals() {
   const {
@@ -22,11 +19,6 @@ export function useSignals() {
     setLoading(true);
     setError(null);
     try {
-      if (USE_DUMMY) {
-        setSignals(dummySignals);
-        setHasMore(false);
-        return;
-      }
       const data = await getSignals(1, 20);
       const items = data.data ?? [];
       setSignals(items);
@@ -40,7 +32,7 @@ export function useSignals() {
   }, []);
 
   const fetchMore = useCallback(async () => {
-    if (loading || !hasMore || USE_DUMMY) return;
+    if (loading || !hasMore) return;
     const nextPage = page + 1;
     setLoading(true);
     try {

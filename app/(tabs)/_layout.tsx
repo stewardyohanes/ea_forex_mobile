@@ -2,17 +2,20 @@ import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { View, Text, StyleSheet } from "react-native";
 import { colors } from "../../src/theme";
+import { useFCM } from "../../src/hooks/useFCM";
 
 function TabHeader({ title }: { title: string }) {
   return (
     <View style={styles.headerContainer}>
-      <Text style={styles.appName}>ForexSignal</Text>
+      <Text style={styles.appName}>TradeGenz</Text>
       <Text style={styles.pageTitle}>{title}</Text>
     </View>
   );
 }
 
 export default function TabLayout() {
+  useFCM();
+
   return (
     <Tabs
       screenOptions={{

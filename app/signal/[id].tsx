@@ -3,12 +3,9 @@ import { View, Text, ScrollView, ActivityIndicator } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { getSignalById } from "../../src/api/signals";
 import { Signal } from "../../src/types/signal";
-import { dummySignals } from "../../src/data/dummySignals";
 import DirectionBadge from "../../src/components/DirectionBadge";
 import StatusBadge from "../../src/components/StatusBadge";
 import { colors } from "../../src/theme";
-
-const USE_DUMMY = true;
 
 export default function SignalDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -17,13 +14,6 @@ export default function SignalDetailScreen() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (USE_DUMMY) {
-      const found = dummySignals.find((s) => s.id === id) ?? null;
-      setSignal(found);
-      if (!found) setError("Sinyal tidak ditemukan");
-      setLoading(false);
-      return;
-    }
     getSignalById(id)
       .then(setSignal)
       .catch(() => setError("Sinyal tidak ditemukan"))
