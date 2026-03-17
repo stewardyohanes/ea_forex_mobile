@@ -8,6 +8,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "../../src/store/authStore";
 import Avatar from "../../src/components/ui/Avatar";
 import { colors, radius } from "../../src/theme";
+import { WA_SUPPORT } from "../../src/config";
+import { useStreak } from "../../src/hooks/useStreak";
+import { useEffect, useState } from "react";
+import { getAnalyticsSummary } from "../../src/api/analytics";
 
 const PLAN_CONFIG: Record<string, { label: string; color: string; glow: string }> = {
   free:      { label: "Free",      color: colors.textSecondary, glow: colors.border },
@@ -15,7 +19,6 @@ const PLAN_CONFIG: Record<string, { label: string; color: string; glow: string }
   affiliate: { label: "Affiliate", color: colors.gold,          glow: colors.gold },
 };
 
-const WA_NUMBER = "62XXXXXXXXXX";
 
 function MenuItem({
   icon,
@@ -60,6 +63,16 @@ export default function ProfileScreen() {
   const plan = user?.plan ?? "free";
   const planCfg = PLAN_CONFIG[plan];
   const username = user?.email?.split("@")[0] ?? "Trader";
+  const streak = useStreak();
+  const [winRate, setWinRate] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (plan === "premium" || plan === "affiliate") {
+      getAnalyticsSummary()
+        .then((d) => setWinRate(Math.round(d.win_rate)))
+        .catch(() => {});
+    }
+  }, [plan]);
 
   const expireDate = user?.plan_expires_at
     ? new Date(user.plan_expires_at).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })
@@ -169,8 +182,8 @@ export default function ProfileScreen() {
           >
             {[
               { label: "Signal Dilihat", value: "—", color: colors.textPrimary },
-              { label: "Win Rate", value: "—", color: colors.green },
-              { label: "Streak", value: "🔥 —", color: colors.gold },
+              { label: "Win Rate", value: winRate !== null ? `${winRate}%` : "—", color: colors.green },
+              { label: "Streak", value: streak > 0 ? `🔥 ${streak}` : "🔥 —", color: colors.gold },
             ].map((stat, i) => (
               <View
                 key={stat.label}
@@ -214,7 +227,7 @@ export default function ProfileScreen() {
               icon="logo-whatsapp"
               label="Hubungi Support"
               color={colors.green}
-              onPress={() => Linking.openURL(`https://wa.me/${WA_NUMBER}`)}
+              onPress={() => Linking.openURL(`https://wa.me/${WA_SUPPORT}`)}
             />
             <MenuItem icon="star-outline" label="Beri Rating" last />
           </View>

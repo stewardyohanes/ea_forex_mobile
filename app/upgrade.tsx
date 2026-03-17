@@ -13,8 +13,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useAuthStore } from "../src/store/authStore";
 import { colors, radius } from "../src/theme";
+import { WA_SUPPORT } from "../src/config";
 
-const WA_NUMBER = "62XXXXXXXXXX";
 
 const PLANS = [
   {
@@ -334,7 +334,7 @@ export default function UpgradeScreen() {
                       }}
                       activeOpacity={0.8}
                       onPress={() =>
-                        Linking.openURL(`https://wa.me/${WA_NUMBER}?text=${plan.ctaMessage}`)
+                        Linking.openURL(`https://wa.me/${WA_SUPPORT}?text=${plan.ctaMessage}`)
                       }
                     >
                       <Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>
