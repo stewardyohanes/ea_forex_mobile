@@ -57,7 +57,6 @@ export default function RootLayout() {
       <Stack.Screen name="login" />
       <Stack.Screen name="register" />
       <Stack.Screen name="disclaimer" />
-      <Stack.Screen name="(tabs)" />
       <Stack.Screen
         name="signal/[id]"
         options={{ headerShown: true, title: "Detail Sinyal", ...headerTheme }}
