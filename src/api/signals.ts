@@ -1,9 +1,9 @@
 import client from './client';
 import { Signal, PaginatedSignals } from '../types/signal';
 
-export async function getSignals(page: number = 1, limit: number = 20): Promise<PaginatedSignals> {
+export async function getSignals(page: number = 1, limit: number = 20, direction?: string): Promise<PaginatedSignals> {
   const res = await client.get<PaginatedSignals>('/signals', {
-    params: { page, limit },
+    params: { page, limit, ...(direction ? { direction } : {}) },
   });
   return res.data;
 }

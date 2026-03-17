@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   FlatList,
   View,
@@ -7,28 +7,38 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useSignals } from "../../src/hooks/useSignals";
 import { useAuthStore } from "../../src/store/authStore";
 import SignalCard from "../../src/components/SignalCard";
 import EmptyState from "../../src/components/EmptyState";
+import { getSignals } from "../../src/api/signals";
 import { Signal } from "../../src/types/signal";
 import { colors } from "../../src/theme";
 
 type Direction = "ALL" | "BUY" | "SELL";
 
 export default function HistoryScreen() {
-  const { signals, loading, fetchInitial } = useSignals();
   const user = useAuthStore((s) => s.user);
   const canViewDetail = user?.plan === "premium" || user?.plan === "affiliate";
   const [filter, setFilter] = useState<Direction>("ALL");
+  const [signals, setSignals] = useState<Signal[]>([]);
+  const [loading, setLoading] = useState(false);
   const insets = useSafeAreaInsets();
 
-  useEffect(() => {
-    fetchInitial();
+  const fetchSignals = useCallback(async (direction: Direction) => {
+    setLoading(true);
+    try {
+      const data = await getSignals(1, 50, direction === "ALL" ? undefined : direction);
+      setSignals(data.data ?? []);
+    } catch {
+      setSignals([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const filtered: Signal[] =
-    filter === "ALL" ? signals : signals.filter((s) => s.direction === filter);
+  useEffect(() => {
+    fetchSignals(filter);
+  }, [filter]);
 
   return (
     <View className="flex-1 bg-gradient-to-b from-surface to-background">
@@ -53,18 +63,18 @@ export default function HistoryScreen() {
           ))}
         </View>
 
-        {loading && signals.length === 0 ? (
+        {loading ? (
           <ActivityIndicator style={{ marginTop: 32 }} color={colors.green} />
         ) : (
           <FlatList
-            data={filtered}
+            data={signals}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
               <SignalCard signal={item} canViewDetail={canViewDetail} />
             )}
             contentContainerStyle={{ paddingBottom: 16, flexGrow: 1 }}
             ListEmptyComponent={
-              <EmptyState message="Tidak ada sinyal" onRetry={fetchInitial} />
+              <EmptyState message="Tidak ada sinyal" onRetry={() => fetchSignals(filter)} />
             }
           />
         )}

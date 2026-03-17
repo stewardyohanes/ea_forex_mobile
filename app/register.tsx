@@ -24,8 +24,8 @@ export default function RegisterScreen() {
       Alert.alert("Error", "Email dan password wajib diisi");
       return;
     }
-    if (password.length < 6) {
-      Alert.alert("Error", "Password minimal 6 karakter");
+    if (password.length < 8) {
+      Alert.alert("Error", "Password minimal 8 karakter");
       return;
     }
     setLoading(true);
@@ -60,7 +60,7 @@ export default function RegisterScreen() {
       />
       <TextInput
         className="border border-bdr rounded-lg p-3.5 mb-3 text-base bg-surface text-text-primary"
-        placeholder="Password (min. 6 karakter)"
+        placeholder="Password (min. 8 karakter)"
         placeholderTextColor={colors.textSecondary}
         secureTextEntry
         value={password}
