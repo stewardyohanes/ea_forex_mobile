@@ -1,27 +1,25 @@
 import { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-  ActivityIndicator,
-} from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+import { LinearGradient } from "expo-linear-gradient";
 import { login } from "../src/api/auth";
 import { useAuthStore } from "../src/store/authStore";
 import { colors } from "../src/theme";
+import Input from "../src/components/ui/Input";
+import Button from "../src/components/ui/Button";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const setAuth = useAuthStore((s) => s.setAuth);
 
   async function handleLogin() {
+    setError("");
     if (!email || !password) {
-      Alert.alert("Error", "Email dan password wajib diisi");
+      setError("Email dan password wajib diisi");
       return;
     }
     setLoading(true);
@@ -32,56 +30,69 @@ export default function LoginScreen() {
       const ok = await SecureStore.getItemAsync("disclaimer_accepted");
       router.replace(ok ? "/(tabs)" : "/disclaimer");
     } catch (e: any) {
-      Alert.alert(
-        "Login Gagal",
-        e.response?.data?.error ?? "Terjadi kesalahan",
-      );
+      setError(e.response?.data?.error ?? "Login gagal. Periksa email dan password kamu.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <View className="flex-1 justify-center p-6 bg-background">
-      <Text className="text-[32px] font-bold text-center text-text-primary mb-1">
-        TradeGenZ
-      </Text>
-      <Text className="text-sm text-center text-text-secondary mb-10">
-        Trading Intelligence Platform
-      </Text>
-      <TextInput
-        className="border border-bdr rounded-lg p-3.5 mb-3 text-base bg-surface text-text-primary"
-        placeholder="Email"
-        placeholderTextColor={colors.textSecondary}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-      />
-      <TextInput
-        className="border border-bdr rounded-lg p-3.5 mb-3 text-base bg-surface text-text-primary"
-        placeholder="Password"
-        placeholderTextColor={colors.textSecondary}
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      <TouchableOpacity
-        className="bg-primary p-3.5 rounded-lg items-center mb-4"
-        onPress={handleLogin}
-        disabled={loading}
+    <LinearGradient
+      colors={[colors.surface, colors.background]}
+      style={{ flex: 1 }}
+    >
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1, justifyContent: "center", padding: 24 }}
+        keyboardShouldPersistTaps="handled"
       >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text className="text-white text-base font-semibold">Login</Text>
-        )}
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => router.push("/register")}>
-        <Text className="text-center text-text-secondary text-sm">
-          Belum punya akun? <Text style={{ color: colors.green }}>Daftar</Text>
-        </Text>
-      </TouchableOpacity>
-    </View>
+        {/* Logo */}
+        <View style={{ alignItems: "center", marginBottom: 40 }}>
+          <Text style={{ fontSize: 32, fontWeight: "800", color: colors.textPrimary, letterSpacing: 1 }}>
+            TradeGenZ
+          </Text>
+          <Text style={{ fontSize: 13, color: colors.textSecondary, marginTop: 4 }}>
+            Trading Intelligence Platform
+          </Text>
+          <View style={{ width: 40, height: 3, backgroundColor: colors.primary, borderRadius: 2, marginTop: 12 }} />
+        </View>
+
+        {/* Form */}
+        <Input
+          label="Email"
+          placeholder="trader@email.com"
+          autoCapitalize="none"
+          keyboardType="email-address"
+          value={email}
+          onChangeText={(t) => { setEmail(t); setError(""); }}
+        />
+        <Input
+          label="Password"
+          placeholder="Masukkan password kamu"
+          isPassword
+          value={password}
+          onChangeText={(t) => { setPassword(t); setError(""); }}
+        />
+
+        {error ? (
+          <Text style={{ color: colors.red, fontSize: 13, marginBottom: 12, marginLeft: 2 }}>
+            {error}
+          </Text>
+        ) : null}
+
+        <Button label="Login" onPress={handleLogin} loading={loading} fullWidth />
+
+        <View style={{ flexDirection: "row", justifyContent: "center", marginTop: 20 }}>
+          <Text style={{ color: colors.textSecondary, fontSize: 14 }}>
+            Belum punya akun?{" "}
+          </Text>
+          <Text
+            style={{ color: colors.green, fontSize: 14, fontWeight: "700" }}
+            onPress={() => router.push("/register")}
+          >
+            Daftar
+          </Text>
+        </View>
+      </ScrollView>
+    </LinearGradient>
   );
 }

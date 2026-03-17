@@ -1,31 +1,34 @@
 import { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-  ActivityIndicator,
-} from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+import { LinearGradient } from "expo-linear-gradient";
 import { register } from "../src/api/auth";
 import { useAuthStore } from "../src/store/authStore";
 import { colors } from "../src/theme";
+import Input from "../src/components/ui/Input";
+import Button from "../src/components/ui/Button";
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const setAuth = useAuthStore((s) => s.setAuth);
 
   async function handleRegister() {
+    setError("");
     if (!email || !password) {
-      Alert.alert("Error", "Email dan password wajib diisi");
+      setError("Email dan password wajib diisi");
       return;
     }
     if (password.length < 8) {
-      Alert.alert("Error", "Password minimal 8 karakter");
+      setError("Password minimal 8 karakter");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Konfirmasi password tidak cocok");
       return;
     }
     setLoading(true);
@@ -35,53 +38,76 @@ export default function RegisterScreen() {
       setAuth(token, user);
       router.replace("/disclaimer");
     } catch (e: any) {
-      Alert.alert(
-        "Registrasi Gagal",
-        e.response?.data?.error ?? "Terjadi kesalahan",
-      );
+      setError(e.response?.data?.error ?? "Registrasi gagal. Coba lagi.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <View className="flex-1 justify-center p-6 bg-background">
-      <Text className="text-[28px] font-bold text-center text-text-primary mb-8">
-        Daftar Akun
-      </Text>
-      <TextInput
-        className="border border-bdr rounded-lg p-3.5 mb-3 text-base bg-surface text-text-primary"
-        placeholder="Email"
-        placeholderTextColor={colors.textSecondary}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-      />
-      <TextInput
-        className="border border-bdr rounded-lg p-3.5 mb-3 text-base bg-surface text-text-primary"
-        placeholder="Password (min. 8 karakter)"
-        placeholderTextColor={colors.textSecondary}
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      <TouchableOpacity
-        className="bg-green p-3.5 rounded-lg items-center mb-4"
-        onPress={handleRegister}
-        disabled={loading}
+    <LinearGradient
+      colors={[colors.surface, colors.background]}
+      style={{ flex: 1 }}
+    >
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1, justifyContent: "center", padding: 24 }}
+        keyboardShouldPersistTaps="handled"
       >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text className="text-background text-base font-bold">Daftar</Text>
-        )}
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => router.back()}>
-        <Text className="text-center text-text-secondary text-sm">
-          Sudah punya akun? <Text style={{ color: colors.primary }}>Login</Text>
-        </Text>
-      </TouchableOpacity>
-    </View>
+        {/* Header */}
+        <View style={{ alignItems: "center", marginBottom: 40 }}>
+          <Text style={{ fontSize: 28, fontWeight: "800", color: colors.textPrimary }}>
+            Buat Akun Baru
+          </Text>
+          <Text style={{ fontSize: 13, color: colors.textSecondary, marginTop: 6 }}>
+            Mulai trading lebih cerdas hari ini
+          </Text>
+          <View style={{ width: 40, height: 3, backgroundColor: colors.green, borderRadius: 2, marginTop: 12 }} />
+        </View>
+
+        {/* Form */}
+        <Input
+          label="Email"
+          placeholder="trader@email.com"
+          autoCapitalize="none"
+          keyboardType="email-address"
+          value={email}
+          onChangeText={(t) => { setEmail(t); setError(""); }}
+        />
+        <Input
+          label="Password"
+          placeholder="Minimal 8 karakter"
+          isPassword
+          value={password}
+          onChangeText={(t) => { setPassword(t); setError(""); }}
+        />
+        <Input
+          label="Konfirmasi Password"
+          placeholder="Ulangi password"
+          isPassword
+          value={confirmPassword}
+          onChangeText={(t) => { setConfirmPassword(t); setError(""); }}
+        />
+
+        {error ? (
+          <Text style={{ color: colors.red, fontSize: 13, marginBottom: 12, marginLeft: 2 }}>
+            {error}
+          </Text>
+        ) : null}
+
+        <Button label="Daftar Sekarang" onPress={handleRegister} loading={loading} variant="primary" fullWidth />
+
+        <View style={{ flexDirection: "row", justifyContent: "center", marginTop: 20 }}>
+          <Text style={{ color: colors.textSecondary, fontSize: 14 }}>
+            Sudah punya akun?{" "}
+          </Text>
+          <Text
+            style={{ color: colors.primary, fontSize: 14, fontWeight: "700" }}
+            onPress={() => router.back()}
+          >
+            Login
+          </Text>
+        </View>
+      </ScrollView>
+    </LinearGradient>
   );
 }

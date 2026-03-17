@@ -1,10 +1,12 @@
 import "../global.css";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { AppState, AppStateStatus } from "react-native";
 import { Stack, router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { useAuthStore } from "../src/store/authStore";
 import { getMe } from "../src/api/auth";
 import { colors } from "../src/theme";
+import ErrorBoundary from "../src/components/ErrorBoundary";
 
 const headerTheme = {
   headerStyle: { backgroundColor: colors.surface },
@@ -20,10 +22,34 @@ const headerTheme = {
 
 export default function RootLayout() {
   const setAuth = useAuthStore((s) => s.setAuth);
+  const setUser = useAuthStore((s) => s.setUser);
+  const appState = useRef<AppStateStatus>(AppState.currentState);
 
   useEffect(() => {
     checkSession();
+
+    // Re-fetch /me setiap kali app kembali ke foreground
+    // Supaya plan change dari admin langsung berlaku tanpa re-login
+    const subscription = AppState.addEventListener("change", (nextState) => {
+      if (appState.current.match(/inactive|background/) && nextState === "active") {
+        syncUserPlan();
+      }
+      appState.current = nextState;
+    });
+
+    return () => subscription.remove();
   }, []);
+
+  async function syncUserPlan() {
+    const token = await SecureStore.getItemAsync("jwt_token");
+    if (!token) return;
+    try {
+      const user = await getMe();
+      setUser(user);
+    } catch {
+      // Jika 401, response interceptor di client.ts yang handle redirect ke login
+    }
+  }
 
   async function checkSession() {
     const onboardingDone = await SecureStore.getItemAsync("onboarding_done");
@@ -52,19 +78,21 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="onboarding" />
-      <Stack.Screen name="login" />
-      <Stack.Screen name="register" />
-      <Stack.Screen name="disclaimer" />
-      <Stack.Screen
-        name="signal/[id]"
-        options={{ headerShown: true, title: "Detail Sinyal", ...headerTheme }}
-      />
-      <Stack.Screen
-        name="upgrade"
-        options={{ headerShown: true, title: "Pilih Plan", ...headerTheme }}
-      />
-    </Stack>
+    <ErrorBoundary>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="onboarding" />
+        <Stack.Screen name="login" />
+        <Stack.Screen name="register" />
+        <Stack.Screen name="disclaimer" />
+        <Stack.Screen
+          name="signal/[id]"
+          options={{ headerShown: true, title: "Detail Sinyal", ...headerTheme }}
+        />
+        <Stack.Screen
+          name="upgrade"
+          options={{ headerShown: true, title: "Pilih Plan", ...headerTheme }}
+        />
+      </Stack>
+    </ErrorBoundary>
   );
 }

@@ -1,20 +1,55 @@
 import { useEffect, useState, useCallback } from "react";
-import {
-  FlatList,
-  View,
-  Text,
-  TouchableOpacity,
-  ActivityIndicator,
-} from "react-native";
+import { FlatList, View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from "react-native-reanimated";
+import * as Haptics from "expo-haptics";
 import { useAuthStore } from "../../src/store/authStore";
 import SignalCard from "../../src/components/SignalCard";
 import EmptyState from "../../src/components/EmptyState";
 import { getSignals } from "../../src/api/signals";
 import { Signal } from "../../src/types/signal";
-import { colors } from "../../src/theme";
+import { colors, radius } from "../../src/theme";
 
 type Direction = "ALL" | "BUY" | "SELL";
+const FILTERS: { key: Direction; label: string }[] = [
+  { key: "ALL", label: "Semua" },
+  { key: "BUY", label: "BUY" },
+  { key: "SELL", label: "SELL" },
+];
+
+function FilterPill({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+  const scale = useSharedValue(1);
+  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
+  async function handlePress() {
+    scale.value = withSpring(0.92, { damping: 12 });
+    setTimeout(() => { scale.value = withSpring(1, { damping: 12 }); }, 100);
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onPress();
+  }
+
+  return (
+    <Animated.View style={animStyle}>
+      <TouchableOpacity
+        style={{
+          paddingHorizontal: 20,
+          paddingVertical: 8,
+          borderRadius: radius.full,
+          backgroundColor: active ? colors.primary : colors.surface,
+          borderWidth: 1,
+          borderColor: active ? colors.primary : colors.border,
+        }}
+        onPress={handlePress}
+        activeOpacity={1}
+      >
+        <Text style={{ color: active ? "#fff" : colors.textSecondary, fontSize: 13, fontWeight: "700" }}>
+          {label}
+        </Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}
 
 export default function HistoryScreen() {
   const user = useAuthStore((s) => s.user);
@@ -41,36 +76,38 @@ export default function HistoryScreen() {
   }, [filter]);
 
   return (
-    <View className="flex-1 bg-gradient-to-b from-surface to-background">
-      <View className="flex-1" style={{ paddingTop: insets.top + 16 }}>
-        <Text className="text-2xl font-extrabold text-text-primary px-4 mb-4">
+    <LinearGradient colors={[colors.surface, colors.background]} style={{ flex: 1 }}>
+      <View style={{ flex: 1, paddingTop: insets.top + 16 }}>
+        {/* Header */}
+        <Text style={{ color: colors.textPrimary, fontSize: 24, fontWeight: "800", paddingHorizontal: 16, marginBottom: 16 }}>
           Riwayat Sinyal
         </Text>
 
-        <View className="flex-row gap-2 px-4 mb-4">
-          {(["ALL", "BUY", "SELL"] as Direction[]).map((d) => (
-            <TouchableOpacity
-              key={d}
-              className={`px-5 py-2 rounded-full border ${filter === d ? "bg-primary border-primary" : "bg-surface border-bdr"}`}
-              onPress={() => setFilter(d)}
-            >
-              <Text
-                className={`text-sm font-semibold ${filter === d ? "text-white" : "text-text-secondary"}`}
-              >
-                {d === "ALL" ? "Semua" : d}
-              </Text>
-            </TouchableOpacity>
+        {/* Filter pills */}
+        <View style={{ flexDirection: "row", gap: 8, paddingHorizontal: 16, marginBottom: 16 }}>
+          {FILTERS.map((f) => (
+            <FilterPill
+              key={f.key}
+              label={f.label}
+              active={filter === f.key}
+              onPress={() => setFilter(f.key)}
+            />
           ))}
+          <View style={{ flex: 1, alignItems: "flex-end" }}>
+            <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 10 }}>
+              {signals.length} sinyal
+            </Text>
+          </View>
         </View>
 
         {loading ? (
-          <ActivityIndicator style={{ marginTop: 32 }} color={colors.green} />
+          <ActivityIndicator style={{ marginTop: 40 }} color={colors.green} />
         ) : (
           <FlatList
             data={signals}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <SignalCard signal={item} canViewDetail={canViewDetail} />
+            renderItem={({ item, index }) => (
+              <SignalCard signal={item} canViewDetail={canViewDetail} index={index} />
             )}
             contentContainerStyle={{ paddingBottom: 16, flexGrow: 1 }}
             ListEmptyComponent={
@@ -79,6 +116,6 @@ export default function HistoryScreen() {
           />
         )}
       </View>
-    </View>
+    </LinearGradient>
   );
 }

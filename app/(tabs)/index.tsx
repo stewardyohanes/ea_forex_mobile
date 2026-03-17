@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   FlatList,
   View,
@@ -8,100 +8,178 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSignals } from "../../src/hooks/useSignals";
 import { useAuthStore } from "../../src/store/authStore";
 import SignalCard from "../../src/components/SignalCard";
 import EmptyState from "../../src/components/EmptyState";
-import { colors } from "../../src/theme";
+import { SignalCardSkeleton } from "../../src/components/ui/Skeleton";
+import PulseDot from "../../src/components/PulseDot";
+import { colors, radius } from "../../src/theme";
+
+// Market session logic based on UTC time
+function getActiveSession(): { name: string; active: boolean } {
+  const utcHour = new Date().getUTCHours();
+  if (utcHour >= 7 && utcHour < 16) return { name: "London", active: true };
+  if (utcHour >= 12 && utcHour < 21) return { name: "New York", active: true };
+  if (utcHour >= 0 && utcHour < 9) return { name: "Tokyo", active: true };
+  if (utcHour >= 21 || utcHour < 6) return { name: "Sydney", active: true };
+  return { name: "Tutup", active: false };
+}
+
+function MarketPulseWidget() {
+  const session = getActiveSession();
+  return (
+    <View
+      style={{
+        backgroundColor: `${colors.primary}12`,
+        borderRadius: radius.lg,
+        padding: 14,
+        borderWidth: 1,
+        borderColor: `${colors.primary}30`,
+        marginBottom: 12,
+      }}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+        <Text style={{ color: colors.textSecondary, fontSize: 11, fontWeight: "700", letterSpacing: 1 }}>
+          📈 MARKET PULSE
+        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <PulseDot color={session.active ? colors.green : colors.textSecondary} size={6} active={session.active} />
+          <Text style={{ color: session.active ? colors.green : colors.textSecondary, fontSize: 11, fontWeight: "700" }}>
+            {session.name} Session {session.active ? "OPEN" : "CLOSED"}
+          </Text>
+        </View>
+      </View>
+      <View style={{ flexDirection: "row", gap: 20 }}>
+        <View>
+          <Text style={{ color: colors.textSecondary, fontSize: 10, fontWeight: "600" }}>XAUUSD</Text>
+          <Text style={{ color: colors.textPrimary, fontSize: 13, fontWeight: "700" }}>Gold</Text>
+        </View>
+        <View>
+          <Text style={{ color: colors.textSecondary, fontSize: 10, fontWeight: "600" }}>EURUSD</Text>
+          <Text style={{ color: colors.textPrimary, fontSize: 13, fontWeight: "700" }}>Euro</Text>
+        </View>
+        <View>
+          <Text style={{ color: colors.textSecondary, fontSize: 10, fontWeight: "600" }}>GBPUSD</Text>
+          <Text style={{ color: colors.textPrimary, fontSize: 13, fontWeight: "700" }}>Pound</Text>
+        </View>
+      </View>
+    </View>
+  );
+}
 
 export default function FeedScreen() {
   const { signals, loading, error, fetchInitial, fetchMore } = useSignals();
   const user = useAuthStore((s) => s.user);
   const canViewDetail = user?.plan === "premium" || user?.plan === "affiliate";
   const insets = useSafeAreaInsets();
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const hour = new Date().getHours();
   const greeting =
     hour < 12 ? "Selamat pagi" : hour < 17 ? "Selamat siang" : "Selamat malam";
   const username = user?.email?.split("@")[0] ?? "Trader";
+  const activeSignals = signals.filter((s) => s.status === "active").length;
 
   useEffect(() => {
     fetchInitial();
   }, []);
 
-  if (error) {
-    return (
-      <View className="flex-1 bg-gradient-to-b from-surface to-background">
-        <View className="flex-1" style={{ paddingTop: insets.top }}>
-          <EmptyState message={error} onRetry={fetchInitial} />
-        </View>
-      </View>
-    );
-  }
-
   return (
-    <View className="flex-1 bg-gradient-to-b from-surface to-background">
-      {/* Header — gradient, no card */}
-      <View className="px-4 pb-5" style={{ paddingTop: insets.top + 12 }}>
-        <View className="flex-row justify-between items-center mb-4">
-          <TouchableOpacity
-            className="w-10 h-10 rounded-full border border-bdr items-center justify-center"
-            style={{ backgroundColor: "rgba(255,255,255,0.08)" }}
-            onPress={() => setDrawerOpen(true)}
+    <LinearGradient
+      colors={[colors.surface, colors.background]}
+      style={{ flex: 1 }}
+    >
+      {/* Header */}
+      <View style={{ paddingHorizontal: 16, paddingBottom: 16, paddingTop: insets.top + 12 }}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <View
+            style={{
+              width: 40, height: 40, borderRadius: 20,
+              backgroundColor: "rgba(255,255,255,0.06)",
+              alignItems: "center", justifyContent: "center",
+              borderWidth: 1, borderColor: colors.border,
+            }}
           >
-            <Ionicons
-              name="menu-outline"
-              size={22}
-              color={colors.textPrimary}
-            />
-          </TouchableOpacity>
-          <Text className="text-base font-extrabold text-text-primary tracking-wide">
+            <Ionicons name="menu-outline" size={22} color={colors.textPrimary} />
+          </View>
+
+          <Text style={{ color: colors.textPrimary, fontSize: 15, fontWeight: "800", letterSpacing: 1 }}>
             TradeGenZ
           </Text>
+
           <TouchableOpacity
-            className="w-10 h-10 rounded-full border border-bdr items-center justify-center"
-            style={{ backgroundColor: "rgba(255,255,255,0.08)" }}
+            style={{
+              width: 40, height: 40, borderRadius: 20,
+              backgroundColor: "rgba(255,255,255,0.06)",
+              alignItems: "center", justifyContent: "center",
+              borderWidth: 1, borderColor: colors.border,
+            }}
           >
-            <Ionicons
-              name="notifications-outline"
-              size={20}
-              color={colors.textPrimary}
-            />
+            <Ionicons name="notifications-outline" size={20} color={colors.textPrimary} />
           </TouchableOpacity>
         </View>
 
-        <View className="mb-4">
-          <Text className="text-[13px] text-text-secondary">{greeting} 👋</Text>
-          <Text className="text-[22px] font-extrabold text-text-primary mt-0.5">
+        {/* Greeting */}
+        <View style={{ marginBottom: 16 }}>
+          <Text style={{ color: colors.textSecondary, fontSize: 13 }}>{greeting} 👋</Text>
+          <Text style={{ color: colors.textPrimary, fontSize: 22, fontWeight: "800", marginTop: 2 }}>
             {username}
           </Text>
         </View>
 
+        {/* Market Pulse */}
+        <MarketPulseWidget />
+
+        {/* Active signals badge */}
+        {activeSignals > 0 && (
+          <Animated.View
+            entering={FadeInDown.springify()}
+            style={{
+              backgroundColor: `${colors.green}15`,
+              borderRadius: radius.md,
+              padding: 12,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+              borderWidth: 1,
+              borderColor: `${colors.green}30`,
+              marginBottom: 12,
+            }}
+          >
+            <PulseDot color={colors.green} size={8} active />
+            <Text style={{ color: colors.green, fontSize: 14, fontWeight: "700", flex: 1 }}>
+              ⚡ {activeSignals} Sinyal Aktif Sekarang
+            </Text>
+          </Animated.View>
+        )}
+
+        {/* Upgrade banner for free users */}
         {user?.plan === "free" && (
           <TouchableOpacity
-            className="flex-row items-center rounded-2xl p-3.5 border"
             style={{
-              backgroundColor: "rgba(255,255,255,0.06)",
-              borderColor: colors.primary + "50",
+              flexDirection: "row",
+              alignItems: "center",
+              borderRadius: radius.lg,
+              padding: 14,
+              backgroundColor: "rgba(255,255,255,0.05)",
+              borderWidth: 1,
+              borderColor: `${colors.primary}40`,
             }}
-            activeOpacity={0.8}
             onPress={() => router.push("/upgrade")}
           >
-            <View className="flex-1">
-              <Text
-                className="text-[11px] font-bold mb-1"
-                style={{ color: colors.primary }}
-              >
-                ✦ Upgrade Sekarang
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: colors.primary, fontSize: 11, fontWeight: "700", marginBottom: 2 }}>
+                ✦ UPGRADE SEKARANG
               </Text>
-              <Text className="text-[15px] font-bold text-text-primary">
+              <Text style={{ color: colors.textPrimary, fontSize: 15, fontWeight: "700" }}>
                 Akses Semua Sinyal Real-Time
               </Text>
-              <Text className="text-xs text-text-secondary mt-0.5">
-                Premium & Affiliate tersedia
+              <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2 }}>
+                Entry · SL · TP · Notifikasi instan
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.primary} />
@@ -109,46 +187,64 @@ export default function FeedScreen() {
         )}
       </View>
 
-      {/* List card — curved top */}
-      <View className="flex-1 bg-surface rounded-t-[28px] overflow-hidden">
-        <FlatList
-          data={signals}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <SignalCard signal={item} canViewDetail={canViewDetail} />
-          )}
-          contentContainerStyle={{ paddingBottom: 16 }}
-          onEndReached={fetchMore}
-          onEndReachedThreshold={0.3}
-          refreshControl={
-            <RefreshControl
-              refreshing={loading && signals.length === 0}
-              onRefresh={fetchInitial}
-              tintColor={colors.green}
-            />
-          }
-          ListHeaderComponent={
-            <View className="flex-row justify-between items-center px-4 pt-4 pb-2">
-              <Text className="text-base font-bold text-text-primary">
-                Sinyal Terbaru
-              </Text>
-              <Text className="text-[13px] text-text-secondary">
-                {signals.length} sinyal
-              </Text>
+      {/* Signal list — curved top */}
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.background,
+          borderTopLeftRadius: 28,
+          borderTopRightRadius: 28,
+          overflow: "hidden",
+        }}
+      >
+        {/* Skeleton saat loading awal */}
+        {loading && signals.length === 0 ? (
+          <View style={{ paddingTop: 16 }}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 16, marginBottom: 8 }}>
+              <Text style={{ color: colors.textPrimary, fontSize: 15, fontWeight: "700" }}>Sinyal Terbaru</Text>
             </View>
-          }
-          ListEmptyComponent={
-            !loading ? (
+            {[...Array(5)].map((_, i) => <SignalCardSkeleton key={i} />)}
+          </View>
+        ) : error ? (
+          <EmptyState message={error} onRetry={fetchInitial} />
+        ) : (
+          <FlatList
+            data={signals}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item, index }) => (
+              <SignalCard signal={item} canViewDetail={canViewDetail} index={index} />
+            )}
+            contentContainerStyle={{ paddingBottom: 16 }}
+            onEndReached={fetchMore}
+            onEndReachedThreshold={0.3}
+            refreshControl={
+              <RefreshControl
+                refreshing={loading && signals.length > 0}
+                onRefresh={fetchInitial}
+                tintColor={colors.green}
+              />
+            }
+            ListHeaderComponent={
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 }}>
+                <Text style={{ color: colors.textPrimary, fontSize: 15, fontWeight: "700" }}>
+                  Sinyal Terbaru
+                </Text>
+                <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
+                  {signals.length} sinyal
+                </Text>
+              </View>
+            }
+            ListEmptyComponent={
               <EmptyState message="Belum ada sinyal" onRetry={fetchInitial} />
-            ) : null
-          }
-          ListFooterComponent={
-            loading && signals.length > 0 ? (
-              <ActivityIndicator style={{ margin: 16 }} color={colors.green} />
-            ) : null
-          }
-        />
+            }
+            ListFooterComponent={
+              loading && signals.length > 0 ? (
+                <ActivityIndicator style={{ margin: 16 }} color={colors.green} />
+              ) : null
+            }
+          />
+        )}
       </View>
-    </View>
+    </LinearGradient>
   );
 }
